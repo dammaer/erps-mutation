@@ -78,4 +78,5 @@ class CFG():
 
 
 if __name__ == "__main__":
-    CFG('10.59.100.3', '9LE7o9WN', 'TP34U', 30, [25, 26]).copy()
+    # CFG('10.59.100.3', 'passwd', 'TP34U', 30, [25, 26]).copy()
+    pass
