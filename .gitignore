@@ -1,0 +1,13 @@
+.env
+venv
+venv_ubuntu16.04
+.vscode/
+temp.py
+test.py
+env.py
+build_send.py
+__pycache__/
+dist/
+build/
+cam_clients_script/
+settings.ini
