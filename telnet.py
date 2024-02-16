@@ -1,6 +1,6 @@
 import pexpect
 
-from commands import d_link, snr, snr_owner, tp_link
+import commands as cmd
 
 MODELS = {'S29': 'SNR', 'S29U': 'SNR',
           'TP34U': 'TP_Link',
@@ -31,7 +31,7 @@ class CFG():
         self.telnet.expect(prompt)
         self.telnet.sendline("terminal length 0")
         self.telnet.expect(prompt)
-        for c in snr(self.raps_vlan, self.ports):
+        for c in cmd.snr(self.raps_vlan, self.ports):
             self.telnet.sendline(c)
             self.telnet.expect(prompt, timeout=None)
         self.telnet.close()
@@ -45,7 +45,7 @@ class CFG():
         self.telnet.expect(prompt)
         self.telnet.sendline("terminal length 0")
         self.telnet.expect(prompt)
-        for c in snr_owner(self.raps_vlan, self.ports):
+        for c in cmd.snr_owner(self.raps_vlan, self.ports):
             self.telnet.sendline(c)
             self.telnet.expect(prompt, timeout=None)
         self.telnet.close()
@@ -57,7 +57,7 @@ class CFG():
         self.telnet.expect("[Pp]ass[Ww]ord")
         self.telnet.sendline(self.passw)
         self.telnet.expect(prompt)
-        for c in d_link(self.raps_vlan, self.ports):
+        for c in cmd.d_link(self.raps_vlan, self.ports):
             self.telnet.sendline(c)
             self.telnet.expect(prompt, timeout=None)
         self.telnet.close()
@@ -71,7 +71,21 @@ class CFG():
         self.telnet.expect(prompt)
         self.telnet.sendline('enable\r\n')
         self.telnet.expect(prompt)
-        for c in tp_link(self.raps_vlan, self.ports):
+        for c in cmd.tp_link(self.raps_vlan, self.ports):
+            self.telnet.sendline(f'{c}\r\n')
+            self.telnet.expect(prompt, timeout=None)
+        self.telnet.close()
+
+    def TP_Link_owner(self):
+        prompt = ['>', '#', ':']
+        self.telnet.expect(prompt)
+        self.telnet.sendline(f'{self.user}\r\n')
+        self.telnet.expect(prompt)
+        self.telnet.sendline(f'{self.passw}\r\n')
+        self.telnet.expect(prompt)
+        self.telnet.sendline('enable\r\n')
+        self.telnet.expect(prompt)
+        for c in cmd.tp_link_owner(self.raps_vlan, self.ports):
             self.telnet.sendline(f'{c}\r\n')
             self.telnet.expect(prompt, timeout=None)
         self.telnet.close()

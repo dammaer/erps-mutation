@@ -1,6 +1,7 @@
+import time
+
 from parse import Parse
 from telnet import CFG
-import time
 
 
 def mutation(adm_urls, adm_login, adm_passw, ring_id):
@@ -10,7 +11,7 @@ def mutation(adm_urls, adm_login, adm_passw, ring_id):
         for swi in ring:
             print(f"{swi['l2_sw_ip']} - {swi['ports']}")
             if swi.get('owner'):
-                print('Owner configuration...')
+                print(f"{swi['l2_sw_ip']} - owner configuration...")
                 CFG(raps_vlan, swi).owner()
             CFG(raps_vlan, swi).common()
             time.sleep(3)
@@ -36,4 +37,4 @@ if __name__ == "__main__":
         config.set('authorization', 'PASSWD', PASSWD)
         with open('settings.ini', 'w') as f:
             config.write(f)
-    mutation(URLS, LOGIN, PASSWD, 289)
+    mutation(URLS, LOGIN, PASSWD, 362)

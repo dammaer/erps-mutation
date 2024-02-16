@@ -27,6 +27,35 @@ def tp_link(raps_vlan, ports):
     return config
 
 
+def tp_link_owner(raps_vlan, ports):
+    port0, port1 = ports
+    config = ['configure',
+              f'no vlan {raps_vlan}',
+              'spanning-tree',
+              'spanning-tree mode mstp',
+              'spanning-tree mst configuration',
+              'instance 1 vlan 2-4094',
+              '#',
+              'erps ring 1',
+              f'control-vlan {raps_vlan}',
+              'protected-instance 1',
+              'wtr-timer 5',
+              'guard-timer 200',
+              'holdoff-timer 50',
+              'raps-mel 3',
+              'version 2',
+              '#',
+              f'int ten-gigabitEthernet 1/0/{port0}',
+              'erps ring 1',
+              f'int ten-gigabitEthernet 1/0/{port1}',
+              'erps ring 1 rpl owner',
+              '#',
+              'exit',
+              'copy running-config startup-config'
+              ]
+    return config
+
+
 def snr(raps_vlan, ports):
     port0, port1 = ports
     config = ['configure',
