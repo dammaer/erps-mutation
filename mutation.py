@@ -5,17 +5,15 @@ import time
 
 def mutation(adm_urls, adm_login, adm_passw, ring_id):
     raps_vlan, ring = Parse(adm_urls, adm_login, adm_passw, ring_id).get_data()
-    owner = None
     if any(len(p['ports']) == 2 for p in ring):
         print('Ring is OK!')
         for swi in ring:
             print(f"{swi['l2_sw_ip']} - {swi['ports']}")
-            CFG(swi['l2_sw_ip'], swi['auth'], swi['model'], raps_vlan, swi['ports']).copy()
             if swi.get('owner'):
-                owner = swi
+                print('Owner configuration...')
+                CFG(raps_vlan, swi).owner()
+            CFG(raps_vlan, swi).common()
             time.sleep(3)
-        print('Owner configuration...')
-        CFG(owner['l2_sw_ip'], owner['auth'], owner['model'], raps_vlan, owner['ports']).SNR_owner()
         print(f'Ring {ring_id} - ERPS ON!')
     else:
         print('Ring NOT OK!')
@@ -38,4 +36,4 @@ if __name__ == "__main__":
         config.set('authorization', 'PASSWD', PASSWD)
         with open('settings.ini', 'w') as f:
             config.write(f)
-    mutation(URLS, LOGIN, PASSWD, 138)
+    mutation(URLS, LOGIN, PASSWD, 289)

@@ -55,19 +55,27 @@ def snr(raps_vlan, ports):
     return config
 
 
-def snr_owner(ports):
-    port0, _ = ports
+def snr_owner(raps_vlan, ports):
+    port0, port1 = ports
     config = ['configure',
-              f'int ethernet 1/0/{port0}',
-              'no erps-ring 1 port0',
+              'spanning-tree mst configuration',
+              'instance 1 vlan 2-4094',
               '!',
               'erps-ring 1',
               'erps-instance 1',
-              'rpl port0 owner',
+              'rpl port1 owner',
+              f'control-vlan {raps_vlan}',
+              'wtr-timer 5',
+              'guard-timer 200',
+              'holdoff-timer 5',
+              'raps-mel 3',
+              'protected-instance 1',
               '!',
               '!',
               f'int ethernet 1/0/{port0}',
               'erps-ring 1 port0',
+              f'int ethernet 1/0/{port1}',
+              'erps-ring 1 port1',
               '!',
               'exit',
               'write',
