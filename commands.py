@@ -130,3 +130,32 @@ def d_link(raps_vlan, ports):
               f'config erps raps_vlan {raps_vlan} state enable',
               'save']
     return config
+
+
+def hw_l3(ring_params, ring_id, first_ring=True):
+    descr, raps_vlan, ports = ring_params
+    config = ['system-view',
+              'stp region-configuration',
+              'instance 1 vlan 2 to 3999',
+              'active region-configuration',
+              'q',
+              f'erps ring {ring_id}',
+              f'description {descr}',
+              f'control-vlan {raps_vlan}',
+              'protected-instance 1',
+              'holdoff-timer 50',
+              'raps-mel 3',
+              'version v2',
+              'q',
+              f'interface XGigabitEthernet 0/0/{ports[0]}',
+              'stp disable',
+              f'erps ring {ring_id}',
+              'q',
+              f'interface XGigabitEthernet 0/0/{ports[1]}',
+              'stp disable',
+              f'erps ring {ring_id}',
+              'q'
+              ]
+    if first_ring is False:
+        del config[1:5]
+    return '\n'.join(config)

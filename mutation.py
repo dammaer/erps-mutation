@@ -1,13 +1,45 @@
 import time
+from configparser import ConfigParser, NoSectionError
+from hashlib import md5
 
 from parse import Parse
 from telnet import CFG
+from commands import hw_l3
 
 
-def mutation(adm_urls, adm_login, adm_passw, ring_id):
-    raps_vlan, ring = Parse(adm_urls, adm_login, adm_passw, ring_id).get_data()
+def ini():
+    config = ConfigParser()
+    config.read('settings.ini')
+    try:
+        urls = config.get('admin_urls', 'urls').split()
+        login = config.get('authorization', 'login')
+        passwd = config.get('authorization', 'passwd')
+    except NoSectionError:
+        login = input('Логин от админки> ')
+        passwd = md5(input('Пароль от админки> ').encode()).hexdigest()
+        config.add_section('authorization')
+        config.set('authorization', 'login', login)
+        config.set('authorization', 'passwd', passwd)
+        with open('settings.ini', 'w') as f:
+            config.write(f)
+    return urls, login, passwd
+
+
+def print_l3_config(ring_params):
+    ring_id = int(input('Свободный ring_id (если это первое erps кольцо на l3, то введите 1)> '))
+    first_ring = True if ring_id == 1 else False
+    print(f'\n{hw_l3(ring_params, ring_id, first_ring)}\n')
+
+
+def mutation(ring_id):
+    ring_params, ring = Parse(*ini(), ring_id).get_data()
+    raps_vlan = ring_params[1]
     if any(len(p['ports']) == 2 for p in ring):
         print('Ring is OK!')
+        print_l3_config(ring_params)
+        print('Если настроки верны, скопируйте конфиг на l3 и нажмите Enter для продолжения настройки кольца!')
+        while input() != '':
+            time.sleep(1)
         for swi in ring:
             print(f"{swi['l2_sw_ip']} - {swi['ports']}")
             if swi.get('owner'):
@@ -21,20 +53,4 @@ def mutation(adm_urls, adm_login, adm_passw, ring_id):
 
 
 if __name__ == "__main__":
-    from configparser import ConfigParser, NoSectionError
-    from hashlib import md5
-    config = ConfigParser()
-    config.read('settings.ini')
-    try:
-        URLS = config.get('admin_urls', 'urls').split()
-        LOGIN = config.get('authorization', 'LOGIN')
-        PASSWD = config.get('authorization', 'PASSWD')
-    except NoSectionError:
-        LOGIN = input('Логин от админки> ')
-        PASSWD = md5(input('Пароль от админки> ').encode()).hexdigest()
-        config.add_section('authorization')
-        config.set('authorization', 'LOGIN', LOGIN)
-        config.set('authorization', 'PASSWD', PASSWD)
-        with open('settings.ini', 'w') as f:
-            config.write(f)
-    mutation(URLS, LOGIN, PASSWD, 362)
+    mutation(378)

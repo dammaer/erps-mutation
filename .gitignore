@@ -9,5 +9,4 @@ build_send.py
 __pycache__/
 dist/
 build/
-cam_clients_script/
 settings.ini

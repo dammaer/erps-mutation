@@ -31,11 +31,14 @@ class Parse():
             swi_auth |= {swi["switch"]: [swi["login"], swi["password"]]}
         return swi_auth
 
-    def get_stp_vlan(self):
-        raps_vlan_url = f'{self.adm_urls[2]}{self.ring_id}'
-        table = self.get_table(
-            raps_vlan_url, {"id": "ring_edit"}).find_all("input", attrs={"id": "stp"})[0]
-        return table['value']
+    def get_ring_params(self):
+        ring_params_url = f'{self.adm_urls[2]}{self.ring_id}'
+        table = self.get_table(ring_params_url, {"id": "ring_edit"})
+        name = re.sub(r'.ERPS[.\w+]|.ERPS', '',  table.find_all("input", attrs={"id": "description"})[0]['value'], flags=re.I)
+        raps_vlan = table.find_all("input", attrs={"id": "stp"})[0]['value']
+        l3_ports1 = table.find_all("input", attrs={"id": "port1"})[0]['value'].split(':')[1]
+        l3_ports2 = table.find_all("input", attrs={"id": "port2"})[0]['value'].split(':')[1]
+        return name, raps_vlan, (l3_ports1, l3_ports2)
 
     def get_first_swi(self):
         for row in self.svg_table.find_all("g"):
@@ -75,6 +78,8 @@ class Parse():
             if int(row.contents[0]["x"]) == x and int(row.contents[0]["y"]) == y:
                 data = {'l2_sw_ip': row['l2_sw_ip']}
                 uplink = False
+                owner = True if "palegreen" in str(
+                    row.contents[0]["style"]) else False
                 ports = []
                 for r in list(row):
                     if int(r["y"]) == y + 58:
@@ -92,10 +97,10 @@ class Parse():
                             r'(uplink)(\d+)', re.sub(r'\s+|-', '', row.get_text().lower()))
                         ports.append(bottom_port[0][1])
                         data |= {'uplink': uplink}
-                    if re.search(r'rpl|owner', str(r.string).lower()):
-                        data |= {'owner': True}
-                data |= {'ports': ports,
-                         'auth': self.swi_auth[row['l2_sw_ip']]}
+                    # if re.search(r'rpl|owner', str(r.string).lower()):
+                    #     data |= {'owner': True}
+                data |= {'ports': ports, 'auth': self.swi_auth[row['l2_sw_ip']],
+                         'owner': owner}
                 return data
 
     def find_direction(self):
@@ -124,10 +129,13 @@ class Parse():
     def get_data(self):
         data = [self.get_first_swi()]
         data.extend(self.find_direction())
-        raps_vlan = self.get_stp_vlan()
-        return raps_vlan, data
+        ring_params = self.get_ring_params()
+        return ring_params, data
 
 
 if __name__ == "__main__":
-    pass
-    # print(Parse('test', 'test', 169).filter_ports(107, 245, [26, 28]))
+    print(Parse(
+        ['https://lfi.bz/data.php?action=ringmap&ring=',
+         'https://lfi.bz/data.php?action=ring&ring=',
+         'https://lfi.bz/data.php?action=ns_ring_edit&ring='],
+        'advtmb', '866fa84c9d75acf79946a1f95b403d4d', 169).get_ring_params())
