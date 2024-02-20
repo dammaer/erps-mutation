@@ -134,8 +134,4 @@ class Parse():
 
 
 if __name__ == "__main__":
-    print(Parse(
-        ['https://lfi.bz/data.php?action=ringmap&ring=',
-         'https://lfi.bz/data.php?action=ring&ring=',
-         'https://lfi.bz/data.php?action=ns_ring_edit&ring='],
-        'advtmb', '866fa84c9d75acf79946a1f95b403d4d', 169).get_ring_params())
+    pass
