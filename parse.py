@@ -64,6 +64,8 @@ class Parse():
             if int(line["x2"]) == swi_x + 100 and int(line["y2"]) == swi_y + 60:
                 if self.find_swi(int(line["x1"]) - 100,  int(line["y1"])).get('uplink'):
                     next_line |= {int(line["x1"]): True}
+                elif self.find_swi(int(line["x1"]) - 100,  int(line["y1"])).get('rudiment'):
+                    next_line |= {int(line["x1"]): False}
                 else:
                     next_line |= {int(line["x1"]): any(int(l["x2"]) == int(line["x1"]) and int(
                         l["y2"]) == int(line["y1"]) + 60 for l in self.lines)}
@@ -81,6 +83,15 @@ class Parse():
                 owner = True if "palegreen" in str(
                     row.contents[0]["style"]) else False
                 ports = []
+                if 'rudiment' in row.get_text().lower():
+                    data |= {'rudiment': True}
+                    return data
+                if 'uplink' in row.get_text().lower():
+                    uplink = True
+                    bottom_port = re.findall(
+                        r'(uplink)(\d+)', re.sub(r'\s+|-', '', row.get_text().lower()))
+                    ports.append(bottom_port[0][1])
+                    data |= {'uplink': uplink}
                 for r in list(row):
                     if int(r["y"]) == y + 58:
                         data |= {'model': r.contents[0]}
@@ -91,14 +102,6 @@ class Parse():
                         if len(bottom_port) > 1:
                             bottom_port = self.filter_ports(x, y, bottom_port)
                         ports.extend(bottom_port)
-                    if 'uplink' in str(r.string).lower():
-                        uplink = True
-                        bottom_port = re.findall(
-                            r'(uplink)(\d+)', re.sub(r'\s+|-', '', row.get_text().lower()))
-                        ports.append(bottom_port[0][1])
-                        data |= {'uplink': uplink}
-                    # if re.search(r'rpl|owner', str(r.string).lower()):
-                    #     data |= {'owner': True}
                 data |= {'ports': ports, 'auth': self.swi_auth[row['l2_sw_ip']],
                          'owner': owner}
                 return data
@@ -122,8 +125,9 @@ class Parse():
                         end_ring = True
                     elif any(int(l["x2"]) == line_x1 + 100 and int(l["y2"]) == line_y1 + 60 for l in self.lines):
                         # Проверяем, что после коммутатора есть соединение со следующим комутатором
-                        swi_x, swi_y = line_x1, line_y1
-                        switches.append(swi_data)
+                        if not swi_data.get('rudiment'):
+                            swi_x, swi_y = line_x1, line_y1
+                            switches.append(swi_data)
         return switches
 
     def get_data(self):
