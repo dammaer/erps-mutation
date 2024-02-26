@@ -4,7 +4,7 @@ import commands as cmd
 
 MODELS = {'S29': 'SNR', 'S29U': 'SNR',
           'TP34U': 'TP_Link',
-          'D3528': 'D_Link', 'D3000': 'D_Link'}
+          'D3528': 'D_Link', 'D3000': 'D_Link', 'D3120': 'D_Link'}
 
 OWNER_MODELS = {'S29': 'SNR_owner', 'S29U': 'SNR_owner',
                 'TP34U': 'TP_Link_owner'}

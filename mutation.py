@@ -53,4 +53,4 @@ def mutation(ring_id):
 
 
 if __name__ == "__main__":
-    mutation(63)
+    mutation(127)
