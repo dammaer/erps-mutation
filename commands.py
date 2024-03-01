@@ -133,7 +133,7 @@ def d_link(raps_vlan, ports):
 
 
 def hw_l3(ring_params, ring_id, first_ring=True):
-    descr, raps_vlan, ports = ring_params
+    descr, raps_vlan, _, ports = ring_params
     config = ['system-view',
               'stp region-configuration',
               'instance 1 vlan 2 to 3999',
@@ -158,4 +158,40 @@ def hw_l3(ring_params, ring_id, first_ring=True):
               ]
     if first_ring is False:
         del config[1:5]
+    return '\n'.join(config)
+
+
+def snr_l3(ring_params, ring_id, first_ring=True):
+    descr, raps_vlan, _, ports = ring_params
+    config = ['configure',
+              f'vlan {raps_vlan}',
+              '!',
+              'spanning-tree mst configuration',
+              'instance 1 vlan 2-4094',
+              'exit',
+              'erps-ring 3',
+              'erps-instance 1',
+              f'description {descr}',
+              f'control-vlan {raps_vlan}',
+              'wtr-timer 5',
+              'guard-timer 200',
+              'holdoff-timer 5',
+              'raps-mel 3',
+              'protected-instance 1',
+              '!',
+              '!',
+              f'int ethernet 1/0/{ports[0]}',
+              f'erps-ring {ring_id} port0',
+              'no loopback-detection specified-vlan 1-4094',
+              f'swi trunk allowed vlan add {raps_vlan}',
+              f'int ethernet 1/0/{ports[1]}',
+              f'erps-ring {ring_id} port1',
+              'no loopback-detection specified-vlan 1-4094',
+              f'swi trunk allowed vlan add {raps_vlan}',
+              '!',
+              'exit',
+              'write',
+              'y']
+    if first_ring is False:
+        del config[3:6]
     return '\n'.join(config)

@@ -4,7 +4,7 @@ from hashlib import md5
 
 from parse import Parse
 from telnet import CFG
-from commands import hw_l3
+from commands import hw_l3, snr_l3
 
 
 def ini():
@@ -28,7 +28,11 @@ def ini():
 def print_l3_config(ring_params):
     ring_id = int(input('Свободный ring_id (если это первое erps кольцо на l3, то введите 1)> '))
     first_ring = True if ring_id == 1 else False
-    print(f'\n{hw_l3(ring_params, ring_id, first_ring)}\n')
+    match ring_params[2]:
+        case 'hw':
+            print(f'\n{hw_l3(ring_params, ring_id, first_ring)}\n')
+        case 'snr':
+            print(f'\n{snr_l3(ring_params, ring_id, first_ring)}\n')
 
 
 def mutation(ring_id):
@@ -53,4 +57,4 @@ def mutation(ring_id):
 
 
 if __name__ == "__main__":
-    mutation(127)
+    mutation(63)

@@ -36,9 +36,10 @@ class Parse():
         table = self.get_table(ring_params_url, {"id": "ring_edit"})
         name = re.sub(r'.ERPS[.\w+]|.ERPS', '',  table.find_all("input", attrs={"id": "description"})[0]['value'], flags=re.I)
         raps_vlan = table.find_all("input", attrs={"id": "stp"})[0]['value']
+        l3_vendor = re.findall(r'(\w+-)(\w+)(\d+|-)', table.select("select[id=l3] option[selected]")[0].get_text().lower())[0][1]
         l3_ports1 = table.find_all("input", attrs={"id": "port1"})[0]['value'].split(':')[1]
         l3_ports2 = table.find_all("input", attrs={"id": "port2"})[0]['value'].split(':')[1]
-        return name, raps_vlan, (l3_ports1, l3_ports2)
+        return name, raps_vlan, l3_vendor, (l3_ports1, l3_ports2)
 
     def get_first_swi(self):
         for row in self.svg_table.find_all("g"):
