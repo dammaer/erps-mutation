@@ -169,7 +169,7 @@ def snr_l3(ring_params, ring_id, first_ring=True):
               'spanning-tree mst configuration',
               'instance 1 vlan 2-4094',
               'exit',
-              'erps-ring 3',
+              f'erps-ring {ring_id}',
               'erps-instance 1',
               f'description {descr}',
               f'control-vlan {raps_vlan}',

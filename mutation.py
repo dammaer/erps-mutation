@@ -45,7 +45,7 @@ def mutation(ring_id):
         while input() != '':
             time.sleep(1)
         for swi in ring:
-            print(f"{swi['l2_sw_ip']} - {swi['ports']}")
+            print(f"{swi['model']} {swi['l2_sw_ip']} - {swi['ports']}")
             if swi.get('owner'):
                 print(f"{swi['l2_sw_ip']} - owner configuration...")
                 CFG(raps_vlan, swi).owner()
@@ -57,4 +57,4 @@ def mutation(ring_id):
 
 
 if __name__ == "__main__":
-    mutation(63)
+    mutation(95)
