@@ -116,7 +116,8 @@ class Parse():
                 # от первого свича вверх
                 if not top_swi and ((int(line["x1"]) == swi_x + 100 and int(line["y1"]) == swi_y)):
                     swi_x, swi_y = int(line["x2"]) - 100, int(line["y2"]) - 60
-                    switches.append(self.find_swi(swi_x, swi_y))
+                    swi_data = self.find_swi(swi_x, swi_y)
+                    switches.append(swi_data)
                     top_swi = True if swi_y == 5 else False
                 elif top_swi and (int(line["x2"]) == swi_x + 100 and int(line["y2"]) == swi_y + 60):
                     line_x1, line_y1 = int(line["x1"]) - 100, int(line["y1"])
@@ -124,6 +125,7 @@ class Parse():
                     if swi_data.get('uplink'):
                         switches.append(swi_data)
                         end_ring = True
+                        break
                     elif any(int(l["x2"]) == line_x1 + 100 and int(l["y2"]) == line_y1 + 60 for l in self.lines):
                         # Проверяем, что после коммутатора есть соединение со следующим комутатором
                         if not swi_data.get('rudiment'):
