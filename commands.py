@@ -1,6 +1,6 @@
 def tp_link(raps_vlan, ports):
     port0, port1 = ports
-    config = ['configure',
+    config = ['conf',
               f'no vlan {raps_vlan}',
               'spanning-tree',
               'spanning-tree mode mstp',
@@ -29,7 +29,7 @@ def tp_link(raps_vlan, ports):
 
 def tp_link_owner(raps_vlan, ports):
     port0, port1 = ports
-    config = ['configure',
+    config = ['conf',
               f'no vlan {raps_vlan}',
               'spanning-tree',
               'spanning-tree mode mstp',
@@ -58,7 +58,7 @@ def tp_link_owner(raps_vlan, ports):
 
 def snr(raps_vlan, ports):
     port0, port1 = ports
-    config = ['configure',
+    config = ['conf',
               'spanning-tree mst configuration',
               'instance 1 vlan 2-4094',
               '!',
@@ -86,7 +86,7 @@ def snr(raps_vlan, ports):
 
 def snr_owner(raps_vlan, ports):
     port0, port1 = ports
-    config = ['configure',
+    config = ['conf',
               'spanning-tree mst configuration',
               'instance 1 vlan 2-4094',
               '!',
@@ -163,7 +163,7 @@ def hw_l3(ring_params, ring_id, first_ring=True):
 
 def snr_l3(ring_params, ring_id, first_ring=True):
     descr, raps_vlan, _, ports = ring_params
-    config = ['configure',
+    config = ['conf',
               f'vlan {raps_vlan}',
               '!',
               'spanning-tree mst configuration',
