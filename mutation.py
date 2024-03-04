@@ -38,7 +38,7 @@ def print_l3_config(ring_params):
 def mutation(ring_id):
     ring_params, ring = Parse(*ini(), ring_id).get_data()
     raps_vlan = ring_params[1]
-    if any(len(p['ports']) == 2 for p in ring):
+    if all(len(p['ports']) == 2 for p in ring):
         print('Ring is OK!')
         print_l3_config(ring_params)
         print('Если настроки верны, скопируйте конфиг на l3 и нажмите Enter для продолжения настройки кольца!')
@@ -57,4 +57,20 @@ def mutation(ring_id):
 
 
 if __name__ == "__main__":
-    mutation(95)
+    import sys
+    from argparse import ArgumentParser
+
+    def Parser():
+        parser = ArgumentParser(
+            prog='mutation',
+            description='''ERPS ring mutation.''',
+            epilog='''\033[36m(ノ ˘_˘)ノ\033[0m
+                    https://github.com/dammaer/'''
+        )
+        parser.add_argument('-id', '--ring_id',
+                            help=('Enter ring ID.'),
+                            metavar='ring-id')
+        return parser
+
+    prs = Parser().parse_args(sys.argv[1:])
+    mutation(prs.ring_id) if prs.ring_id else print('Запуск с указанием ring-id. Пример: python mutation.py -id 100')
