@@ -119,6 +119,7 @@ class Parse():
                     swi_data = self.find_swi(swi_x, swi_y)
                     switches.append(swi_data)
                     top_swi = True if swi_y == 5 else False
+                # от верхнего свича вниз
                 elif top_swi and (int(line["x2"]) == swi_x + 100 and int(line["y2"]) == swi_y + 60):
                     line_x1, line_y1 = int(line["x1"]) - 100, int(line["y1"])
                     swi_data = self.find_swi(line_x1, line_y1)
