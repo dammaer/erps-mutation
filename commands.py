@@ -195,3 +195,25 @@ def snr_l3(ring_params, ring_id, first_ring=True):
     if first_ring is False:
         del config[3:6]
     return '\n'.join(config)
+
+
+def d_link_l3(ring_params, first_ring=True):
+    _, raps_vlan, _, ports = ring_params
+    config = [f'create vlan vlan{raps_vlan} tag {raps_vlan}',
+              f'config vlan vlan{raps_vlan} add tagged {ports[0]},{ports[1]}',
+              'enable erps',
+              f'create erps raps_vlan {raps_vlan}',
+              f'config erps raps_vlan {raps_vlan} timer holdoff_time 5000 guard_time 2000 wtr_time 5',
+              f'config erps raps_vlan {raps_vlan} rpl_port none',
+              f'config erps raps_vlan {raps_vlan} rpl_owner disable',
+              f'config erps raps_vlan {raps_vlan} ring_mel 3',
+              f'config erps raps_vlan {raps_vlan} ring_port west {ports[0]}',
+              f'config erps raps_vlan {raps_vlan} ring_port east {ports[1]}',
+              f'config erps raps_vlan {raps_vlan} protected_vlan add vlanid 2-{int(raps_vlan) - 1},{int(raps_vlan) + 1}-4094',
+              'config erps log enable',
+              f'config loopdetect ports {ports[0]},{ports[1]} state disable',
+              f'config erps raps_vlan {raps_vlan} state enable',
+              'save']
+    if first_ring is False:
+        del config[2:3]
+    return '\n'.join(config)

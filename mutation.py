@@ -4,7 +4,7 @@ from hashlib import md5
 
 from parse import Parse
 from telnet import CFG
-from commands import hw_l3, snr_l3
+from commands import hw_l3, snr_l3, d_link_l3
 
 
 def ini():
@@ -33,6 +33,8 @@ def print_l3_config(ring_params):
             print(f'\n{hw_l3(ring_params, ring_id, first_ring)}\n')
         case 'snr':
             print(f'\n{snr_l3(ring_params, ring_id, first_ring)}\n')
+        case 'dgs':
+            print(f'\n{d_link_l3(ring_params, first_ring)}\n')
 
 
 def mutation(ring_id):
