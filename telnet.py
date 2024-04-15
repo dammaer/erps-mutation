@@ -4,7 +4,8 @@ import commands as cmd
 
 MODELS = {'S29': 'SNR', 'S29U': 'SNR', 'S29P': 'SNR',
           'TP34U': 'TP_Link',
-          'D3528': 'D_Link', 'D3000': 'D_Link', 'D3120': 'D_Link', 'G3000': 'D_Link'}
+          'D3528': 'D_Link', 'D3000': 'D_Link', 'D3120': 'D_Link', 'G3000': 'D_Link',
+          'Q28': 'QTECH'}
 
 OWNER_MODELS = {'S29': 'SNR_owner', 'S29U': 'SNR_owner', 'S29P': 'SNR_owner',
                 'TP34U': 'TP_Link_owner'}
@@ -87,6 +88,20 @@ class CFG():
         self.telnet.expect(prompt)
         for c in cmd.tp_link_owner(self.raps_vlan, self.ports):
             self.telnet.sendline(f'{c}\r\n')
+            self.telnet.expect(prompt, timeout=None)
+        self.telnet.close()
+
+    def QTECH(self):
+        prompt = ["#", "[Y/N]"]
+        self.telnet.expect("login")
+        self.telnet.sendline(self.user)
+        self.telnet.expect("[Pp]assword")
+        self.telnet.sendline(self.passw)
+        self.telnet.expect(prompt)
+        self.telnet.sendline("terminal length 0")
+        self.telnet.expect(prompt)
+        for c in cmd.qtech(self.raps_vlan, self.ports):
+            self.telnet.sendline(c)
             self.telnet.expect(prompt, timeout=None)
         self.telnet.close()
 
