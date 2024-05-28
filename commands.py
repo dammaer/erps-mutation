@@ -160,7 +160,7 @@ def qtech(raps_vlan, ports):
     return config
 
 
-def hw_l3(ring_params, ring_id, first_ring=True):
+def hw_l3(ring_params, ring_id):
     descr, raps_vlan, _, ports = ring_params
     config = ['system-view',
               'stp region-configuration',
@@ -184,12 +184,12 @@ def hw_l3(ring_params, ring_id, first_ring=True):
               f'erps ring {ring_id}',
               'q'
               ]
-    if first_ring is False:
+    if ring_id != 1:
         del config[1:5]
     return '\n'.join(config)
 
 
-def snr_l3(ring_params, ring_id, first_ring=True):
+def snr_l3(ring_params, ring_id):
     descr, raps_vlan, _, ports = ring_params
     config = ['conf',
               f'vlan {raps_vlan}',
@@ -220,12 +220,12 @@ def snr_l3(ring_params, ring_id, first_ring=True):
               'exit',
               'write',
               'y']
-    if first_ring is False:
+    if ring_id != 1:
         del config[3:6]
     return '\n'.join(config)
 
 
-def d_link_l3(ring_params, first_ring=True):
+def d_link_l3(ring_params, ring_id):
     _, raps_vlan, _, ports = ring_params
     config = [f'create vlan vlan{raps_vlan} tag {raps_vlan}',
               f'config vlan vlan{raps_vlan} add tagged {ports[0]},{ports[1]}',
@@ -242,6 +242,24 @@ def d_link_l3(ring_params, first_ring=True):
               f'config loopdetect ports {ports[0]},{ports[1]} state disable',
               f'config erps raps_vlan {raps_vlan} state enable',
               'save']
-    if first_ring is False:
+    if ring_id != 1:
         del config[2:3]
+    return '\n'.join(config)
+
+
+def ex_l3(ring_params, ring_id):
+    descr, raps_vlan, _, ports = ring_params
+    config = ['enable erps',
+              f'create vlan vlan{raps_vlan}',
+              f'configure vlan vlan{raps_vlan} tag {raps_vlan}',
+              f'configure vlan vlan{raps_vlan} add ports {ports[0]},{ports[1]} tagged',
+              f'create erps {descr} ring-id {ring_id}',
+              f'configure erps {descr} add control vlan vlan{raps_vlan}',
+              f'configure erps {descr} ring-port east {ports[0]}',
+              f'configure erps {descr} ring-port west {ports[1]}',
+              f'configure erps {descr} timer hold-off 5000',
+              f'configure erps {descr} timer guard 2000',
+              f'enable erps {descr}']
+    if ring_id != 1:
+        del config[0:1]
     return '\n'.join(config)

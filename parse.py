@@ -138,6 +138,8 @@ class Parse():
         data = [self.get_first_swi()]
         data.extend(self.find_direction())
         ring_params = self.get_ring_params()
+        # переворачиваем кольцо, чтобы настройка была с последнего свича
+        data.reverse()
         return ring_params, data
 
 
