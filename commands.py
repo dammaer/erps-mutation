@@ -253,7 +253,7 @@ def ex_l3(ring_params, ring_id):
               f'create vlan vlan{raps_vlan}',
               f'configure vlan vlan{raps_vlan} tag {raps_vlan}',
               f'configure vlan vlan{raps_vlan} add ports {ports[0]},{ports[1]} tagged',
-              f'create erps {descr} ring-id {ring_id}',
+              f'create erps {descr}',
               f'configure erps {descr} add control vlan vlan{raps_vlan}',
               f'configure erps {descr} ring-port east {ports[0]}',
               f'configure erps {descr} ring-port west {ports[1]}',
