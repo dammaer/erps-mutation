@@ -2,7 +2,7 @@ import pexpect
 
 import commands as cmd
 
-MODELS = {'S29': 'SNR', 'S29U': 'SNR', 'S29P': 'SNR',
+MODELS = {'S29': 'SNR', 'S29U': 'SNR', 'S29P': 'SNR', 'S52U': 'SNR_S52',
           'TP34U': 'TP_Link',
           'D3528': 'D_Link', 'D3000': 'D_Link', 'D3120': 'D_Link', 'G3000': 'D_Link',
           'Q28': 'QTECH'}
@@ -47,6 +47,22 @@ class CFG():
         self.telnet.sendline("terminal length 0")
         self.telnet.expect(prompt)
         for c in cmd.snr_owner(self.raps_vlan, self.ports):
+            self.telnet.sendline(c)
+            self.telnet.expect(prompt, timeout=None)
+        self.telnet.close()
+
+    def SNR_S52(self):
+        prompt = [">", "#", "[Y/N]"]
+        self.telnet.expect("login")
+        self.telnet.sendline(self.user)
+        self.telnet.expect("[Pp]assword")
+        self.telnet.sendline(self.passw)
+        self.telnet.expect(prompt, timeout=None)
+        self.telnet.sendline("enable")
+        self.telnet.expect(prompt)
+        self.telnet.sendline("terminal length 0")
+        self.telnet.expect(prompt)
+        for c in cmd.snr_s52(self.raps_vlan, self.ports):
             self.telnet.sendline(c)
             self.telnet.expect(prompt, timeout=None)
         self.telnet.close()
@@ -115,5 +131,8 @@ class CFG():
 
 
 if __name__ == "__main__":
-    # CFG('10.59.100.3', 'passwd', 'TP34U', 30, [25, 26]).copy()
+    # CFG('30',
+    #     {'l2_sw_ip': '10.255.100.4', 'uplink': True, 'model': 'S52U',
+    #      'ports': ['26', '25'], 'auth': ['admin', 'pass'],
+    #      'owner': False}).common()
     pass

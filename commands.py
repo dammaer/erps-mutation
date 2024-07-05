@@ -59,6 +59,8 @@ def tp_link_owner(raps_vlan, ports):
 def snr(raps_vlan, ports):
     port0, port1 = ports
     config = ['conf',
+              f'vlan {raps_vlan}',
+              '!',
               'spanning-tree mst configuration',
               'instance 1 vlan 2-4094',
               '!',
@@ -87,6 +89,8 @@ def snr(raps_vlan, ports):
 def snr_owner(raps_vlan, ports):
     port0, port1 = ports
     config = ['conf',
+              f'vlan {raps_vlan}',
+              '!',
               'spanning-tree mst configuration',
               'instance 1 vlan 2-4094',
               '!',
@@ -113,6 +117,36 @@ def snr_owner(raps_vlan, ports):
     return config
 
 
+def snr_s52(raps_vlan, ports):
+    port0, port1 = ports
+    pmap = {'25': 'xe1', '26': 'xe2',
+            '27': 'xe3', '28': 'xe4'}
+    config = ['configure',
+              f'vlan {raps_vlan}',
+              'spanning-tree mst configuration',
+              'instance 1 vlan 2-4094',
+              'exit',
+              'erps-ring 1',
+              'erps-instance 1',
+              f'control-vlan {raps_vlan}',
+              'wtr-timer 5',
+              'guard-timer 200',
+              'holdoff-timer 5',
+              'raps-mel 3',
+              'protected-instance 1',
+              'exit',
+              'exit',
+              f'interface {pmap[port0]}',
+              'erps-ring 1 port0',
+              f'interface {pmap[port1]}',
+              'erps-ring 1 port1',
+              'exit',
+              'exit',
+              'write',
+              ]
+    return config
+
+
 def d_link(raps_vlan, ports):
     port0, port1 = ports
     config = [f'create vlan vlan{raps_vlan} tag {raps_vlan}',
@@ -135,6 +169,8 @@ def d_link(raps_vlan, ports):
 def qtech(raps_vlan, ports):
     port0, port1 = ports
     config = ['conf',
+              f'vlan {raps_vlan}',
+              '!',
               'spanning-tree mst configuration',
               'instance 1 vlan 2-4094',
               '!',
