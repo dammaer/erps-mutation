@@ -42,7 +42,7 @@ def mutation(ring_id):
     ring_params, ring = Parse(*ini(), ring_id).get_data()
     raps_vlan = ring_params[1]
     if all(len(p['ports']) == 2 for p in ring):
-        print('Ring is OK!')
+        print(f'Ring is OK! {len(ring)} коммутаторов.')
         print_l3_config(ring_params)
         print('Если настроки верны, скопируйте конфиг на l3 и нажмите Enter для продолжения настройки кольца!')
         while input() != '':
