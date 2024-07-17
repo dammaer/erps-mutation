@@ -78,13 +78,15 @@ if __name__ == "__main__":
     def Parser():
         parser = ArgumentParser(
             prog='mutation',
+            add_help=False,
             description='''ERPS ring mutation.''',
             epilog='''\033[36m(ノ ˘_˘)ノ\033[0m
                     https://github.com/dammaer/'''
         )
+        parser.add_argument('-h', '--help', action='help')
         parser.add_argument('-id', '--ring_id',
                             help=('Указать id кольца'),
-                            metavar='ring-id')
+                            metavar='\b')
         parser.add_argument('-rm', '--remove_erps',
                             action='store_true',
                             help='Удалить ERPS с кольца')
