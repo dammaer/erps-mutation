@@ -169,7 +169,7 @@ def snr_s52(raps_vlan, ports, rm):
                  'no erps-ring 1 port0',
                  'no erps-ring 1 port1',
                  'exit',
-                 'no erps ring 1',
+                 'no erps-ring 1',
                  'exit',
                  'write']
     return rm_config if rm else config
