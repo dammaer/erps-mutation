@@ -204,8 +204,8 @@ class CFG():
 
 
 if __name__ == "__main__":
-    CFG('30',
-        {'l2_sw_ip': '10.59.100.22', 'uplink': False, 'model': 'TP34U',
-         'ports': ['26', '25'], 'auth': ['root', 'root'],
-         'owner': False}, rm=True).remove()
+    # CFG('30',
+    #     {'l2_sw_ip': '10.59.100.22', 'uplink': False, 'model': 'TP34U',
+    #      'ports': ['26', '25'], 'auth': ['root', 'root'],
+    #      'owner': False}, rm=True).remove()
     pass
