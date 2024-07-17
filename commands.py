@@ -56,7 +56,7 @@ def tp_link_owner(raps_vlan, ports):
     return config
 
 
-def snr(raps_vlan, ports):
+def snr(raps_vlan, ports, rm):
     port0, port1 = ports
     config = ['conf',
               f'vlan {raps_vlan}',
@@ -85,7 +85,19 @@ def snr(raps_vlan, ports):
               'write',
               'y'
               ]
-    return config
+    rm_config = ['conf',
+                 f'interface ethernet 1/0/{port0}',
+                 'no erps-ring 1 port0',
+                 'no erps-ring 1 port1',
+                 f'interface ethernet 1/0/{port1}',
+                 'no erps-ring 1 port0',
+                 'no erps-ring 1 port1',
+                 '!',
+                 'no erps-ring 1',
+                 'exit',
+                 'write',
+                 'y']
+    return rm_config if rm else config
 
 
 def snr_owner(raps_vlan, ports):
@@ -121,7 +133,7 @@ def snr_owner(raps_vlan, ports):
     return config
 
 
-def snr_s52(raps_vlan, ports):
+def snr_s52(raps_vlan, ports, rm):
     port0, port1 = ports
     pmap = {'25': 'xe1', '26': 'xe2',
             '27': 'xe3', '28': 'xe4'}
@@ -148,12 +160,22 @@ def snr_s52(raps_vlan, ports):
               'erps-ring 1 port1',
               'exit',
               'exit',
-              'write',
-              ]
-    return config
+              'write']
+    rm_config = ['configure',
+                 f'interface {pmap[port0]}',
+                 'no erps-ring 1 port0',
+                 'no erps-ring 1 port1',
+                 f'interface {pmap[port1]}',
+                 'no erps-ring 1 port0',
+                 'no erps-ring 1 port1',
+                 'exit',
+                 'no erps ring 1',
+                 'exit',
+                 'write']
+    return rm_config if rm else config
 
 
-def d_link(raps_vlan, ports):
+def d_link(raps_vlan, ports, rm):
     port0, port1 = ports
     config = [f'create vlan vlan{raps_vlan} tag {raps_vlan}',
               f'config vlan vlan{raps_vlan} add tagged {port0},{port1}',
@@ -169,7 +191,8 @@ def d_link(raps_vlan, ports):
               'config erps log enable',
               f'config erps raps_vlan {raps_vlan} state enable',
               'save']
-    return config
+    rm_config = ['disable erps', f'delete erps raps_vlan {raps_vlan}']
+    return rm_config if rm else config
 
 
 def qtech(raps_vlan, ports):

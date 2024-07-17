@@ -26,7 +26,8 @@ def ini():
 
 
 def print_l3_config(ring_params):
-    ring_id = int(input('Свободный ring_id (если это первое erps кольцо на l3, то введите 1)> '))
+    ring_id = int(
+        input('Свободный ring_id (если это первое erps кольцо на l3, то введите 1)> '))
     match ring_params[2]:
         case 'hw':
             print(f'\n{cmd.hw_l3(ring_params, ring_id)}\n')
@@ -38,23 +39,34 @@ def print_l3_config(ring_params):
             print(f'\n{cmd.ex_l3(ring_params, ring_id)}\n')
 
 
-def mutation(ring_id):
+def mutation(ring_id, rm=False):
     ring_params, ring = Parse(*ini(), ring_id).get_data()
     raps_vlan = ring_params[1]
     if all(len(p['ports']) == 2 for p in ring):
         print(f'Ring is OK! {len(ring)} коммутаторов.')
-        print_l3_config(ring_params)
-        print('Если настроки верны, скопируйте конфиг на l3 и нажмите Enter для продолжения настройки кольца!')
-        while input() != '':
-            time.sleep(1)
-        for swi in ring:
-            print(f"{swi['model']} {swi['l2_sw_ip']} - {swi['ports']}")
-            if swi.get('owner'):
-                print(f"{swi['l2_sw_ip']} - owner configuration...")
-                CFG(raps_vlan, swi).owner()
-            CFG(raps_vlan, swi).common()
-            time.sleep(3)
-        print(f'Ring {ring_id} - ERPS ON!')
+        if not rm:
+            print_l3_config(ring_params)
+            print('Если настроки верны, скопируйте конфиг на l3 и нажмите Enter для продолжения настройки кольца!')
+            while input() != '':
+                time.sleep(1)
+            for swi in ring:
+                if swi.get('owner'):
+                    print(f"{swi['l2_sw_ip']} - owner configuration...")
+                    CFG(raps_vlan, swi, rm).owner()
+                else:
+                    CFG(raps_vlan, swi, rm).common()
+                print(f"{swi['model']} {swi['l2_sw_ip']} {swi['ports']} is OK")
+                time.sleep(3)
+            print(f'Ring {ring_id} - ERPS ON!')
+        else:
+            print('Убедитесь, что кольцо работает со стороны "жёлтого" коммутатора! Если всё правильно нажмите Enter.')
+            while input() != '':
+                time.sleep(1)
+            for swi in ring:
+                CFG(raps_vlan, swi, rm).remove()
+                print(f"{swi['model']} {swi['l2_sw_ip']} {swi['ports']} is OK")
+                time.sleep(3)
+            print(f'Ring {ring_id} - ERPS REMOVE!')
     else:
         print('Ring NOT OK!')
 
@@ -71,9 +83,13 @@ if __name__ == "__main__":
                     https://github.com/dammaer/'''
         )
         parser.add_argument('-id', '--ring_id',
-                            help=('Enter ring ID.'),
+                            help=('Указать id кольца'),
                             metavar='ring-id')
+        parser.add_argument('-rm', '--remove_erps',
+                            action='store_true',
+                            help='Удалить ERPS с кольца')
         return parser
 
     prs = Parser().parse_args(sys.argv[1:])
-    mutation(prs.ring_id) if prs.ring_id else print('Запуск с указанием ring-id. Пример: python mutation.py -id 100')
+    mutation(prs.ring_id, prs.remove_erps) if prs.ring_id else print(
+        'Запуск с указанием ring-id. Пример: python mutation.py -id 100')

@@ -1,6 +1,12 @@
 import pexpect
-
+import subprocess
+import socket
+import time
 import commands as cmd
+
+SWI_CONFIG_DIR = './erps/'
+TFTP_IP = '10.59.1.199'
+TFTP_PATCH = '/erps/'
 
 MODELS = {'S29': 'SNR', 'S29U': 'SNR', 'S29P': 'SNR', 'S52U': 'SNR_S52',
           'TP34U': 'TP_Link',
@@ -10,17 +16,62 @@ MODELS = {'S29': 'SNR', 'S29U': 'SNR', 'S29P': 'SNR', 'S52U': 'SNR_S52',
 OWNER_MODELS = {'S29': 'SNR_owner', 'S29U': 'SNR_owner', 'S29P': 'SNR_owner',
                 'TP34U': 'TP_Link_owner'}
 
+TPLINK_RM_PATTERNS = ['erps ring 1', 'description "ring 1"', 'control-vlan',
+                      'protected-instance 1', 'raps-mel 3', 'version 2']
+
+
+def download_from_tftp(swi_ip):
+    try:
+        command = f"tftp {TFTP_IP} -c get {TFTP_PATCH + swi_ip} {SWI_CONFIG_DIR + swi_ip}"
+        subprocess.run(command, shell=True, check=True)
+        print(f"Config '{swi_ip}' downloaded successfully in local dir.")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to download file from TFTP server: {e}")
+
+
+def upload_to_tftp(swi_ip):
+    try:
+        command = f"tftp {TFTP_IP} -c put {SWI_CONFIG_DIR + swi_ip} {TFTP_PATCH + swi_ip}"
+        subprocess.run(command, shell=True, check=True)
+        print(f"Config '{swi_ip}' uploaded successfully in TFTP dir.")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to upload file to TFTP server: {e}")
+
+
+def config_change(patterns, swi_ip):
+    with open(SWI_CONFIG_DIR + swi_ip, 'r') as f:
+        cfg = f.readlines()
+
+    print('Config change...')
+    new_cfg = []
+    for v in cfg:
+        if not any(v.lstrip().startswith(pattern) for pattern in patterns):
+            new_cfg.append(v)
+
+    with open(SWI_CONFIG_DIR + swi_ip, 'w') as f:
+        f.write(''.join(new_cfg))
+
+
+def is_alive(host):
+    try:
+        with socket.create_connection((host, 23), 2):
+            return True
+    except OSError:
+        return False
+
 
 class CFG():
     EXCEPT = [pexpect.TIMEOUT, pexpect.EOF]
 
-    def __init__(self, raps_vlan, swi):
+    def __init__(self, raps_vlan, swi, rm):
         self.raps_vlan = raps_vlan
+        self.swi_ip = swi['l2_sw_ip']
         self.model = swi['model']
         self.user = swi['auth'][0]
         self.passw = swi['auth'][1]
         self.ports = swi['ports']
-        self.telnet = pexpect.spawn(f"telnet {swi['l2_sw_ip']}", timeout=10,
+        self.rm = rm
+        self.telnet = pexpect.spawn(f"telnet {self.swi_ip}", timeout=10,
                                     encoding="utf-8")
 
     def SNR(self):
@@ -32,7 +83,7 @@ class CFG():
         self.telnet.expect(prompt)
         self.telnet.sendline("terminal length 0")
         self.telnet.expect(prompt)
-        for c in cmd.snr(self.raps_vlan, self.ports):
+        for c in cmd.snr(self.raps_vlan, self.ports, self.rm):
             self.telnet.sendline(c)
             self.telnet.expect(prompt, timeout=None)
         self.telnet.close()
@@ -62,7 +113,7 @@ class CFG():
         self.telnet.expect(prompt)
         self.telnet.sendline("terminal length 0")
         self.telnet.expect(prompt)
-        for c in cmd.snr_s52(self.raps_vlan, self.ports):
+        for c in cmd.snr_s52(self.raps_vlan, self.ports, self.rm):
             self.telnet.sendline(c)
             self.telnet.expect(prompt, timeout=None)
         self.telnet.close()
@@ -74,7 +125,7 @@ class CFG():
         self.telnet.expect("[Pp]ass[Ww]ord")
         self.telnet.sendline(self.passw)
         self.telnet.expect(prompt)
-        for c in cmd.d_link(self.raps_vlan, self.ports):
+        for c in cmd.d_link(self.raps_vlan, self.ports, self.rm):
             self.telnet.sendline(c)
             self.telnet.expect(prompt, timeout=None)
         self.telnet.close()
@@ -88,10 +139,30 @@ class CFG():
         self.telnet.expect(prompt)
         self.telnet.sendline('enable\r\n')
         self.telnet.expect(prompt)
-        for c in cmd.tp_link(self.raps_vlan, self.ports):
-            self.telnet.sendline(f'{c}\r\n')
-            self.telnet.expect(prompt, timeout=None)
-        self.telnet.close()
+        if not self.rm:
+            for c in cmd.tp_link(self.raps_vlan, self.ports):
+                self.telnet.sendline(f'{c}\r\n')
+                self.telnet.expect(prompt, timeout=None)
+            self.telnet.close()
+        else:
+            print(f'{self.model} {self.swi_ip} configuration...')
+            self.telnet.sendline('copy startup-config tftp ip-address '
+                                 f'{TFTP_IP} filename {TFTP_PATCH + self.swi_ip}\r\n')
+            self.telnet.expect(prompt)
+            download_from_tftp(self.swi_ip)
+            config_change(TPLINK_RM_PATTERNS, self.swi_ip)
+            upload_to_tftp(self.swi_ip)
+            self.telnet.sendline('copy tftp startup-config ip-address '
+                                 f'{TFTP_IP} filename {TFTP_PATCH + self.swi_ip}\r\n')
+            self.telnet.expect('(Y/N)')
+            self.telnet.sendline('y\r\n')
+            self.telnet.expect('...')
+            self.telnet.close()
+            print('Switch rebooting (~ 3 min)...')
+            time.sleep(5)  # берем паузу чтобы коммутатор точно не был доступен
+            while not is_alive(self.swi_ip):
+                time.sleep(1)
+            print('Switch is alive! Move to next switch...')
 
     def TP_Link_owner(self):
         prompt = ['>', '#', ':']
@@ -129,10 +200,12 @@ class CFG():
         method = getattr(self, OWNER_MODELS[self.model])
         method()
 
+    remove = common
+
 
 if __name__ == "__main__":
-    # CFG('30',
-    #     {'l2_sw_ip': '10.255.100.4', 'uplink': True, 'model': 'S52U',
-    #      'ports': ['26', '25'], 'auth': ['admin', 'pass'],
-    #      'owner': False}).common()
+    CFG('30',
+        {'l2_sw_ip': '10.59.100.22', 'uplink': False, 'model': 'TP34U',
+         'ports': ['26', '25'], 'auth': ['root', 'aVfoy5q8'],
+         'owner': False}, rm=True).remove()
     pass
