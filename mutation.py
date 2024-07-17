@@ -41,7 +41,7 @@ def print_l3_config(ring_params):
 
 def mutation(ring_id, rm=False):
     ring_params, ring = Parse(*ini(), ring_id).get_data()
-    raps_vlan = ring_params[1]
+    raps_vlan = ring_params[1] if ring_params[1] else input('Введите raps_vlan> ')
     if all(len(p['ports']) == 2 for p in ring):
         print(f'Ring is OK! {len(ring)} коммутаторов.')
         if not rm:
@@ -55,7 +55,7 @@ def mutation(ring_id, rm=False):
                     CFG(raps_vlan, swi, rm).owner()
                 else:
                     CFG(raps_vlan, swi, rm).common()
-                print(f"{swi['model']} {swi['l2_sw_ip']} {swi['ports']} is OK")
+                print(f"{len(ring) - ring.index(swi)} - {swi['model']} {swi['l2_sw_ip']} {swi['ports']} is OK")
                 time.sleep(3)
             print(f'Ring {ring_id} - ERPS ON!')
         else:
@@ -64,7 +64,7 @@ def mutation(ring_id, rm=False):
                 time.sleep(1)
             for swi in ring:
                 CFG(raps_vlan, swi, rm).remove()
-                print(f"{swi['model']} {swi['l2_sw_ip']} {swi['ports']} is OK")
+                print(f"{len(ring) - ring.index(swi)} - {swi['model']} {swi['l2_sw_ip']} {swi['ports']} is OK")
                 time.sleep(3)
             print(f'Ring {ring_id} - ERPS REMOVE!')
     else:
