@@ -4,9 +4,14 @@ import socket
 import time
 import commands as cmd
 
-SWI_CONFIG_DIR = './erps/'
-TFTP_IP = '10.59.1.199'
-TFTP_PATCH = '/erps/'
+from configparser import ConfigParser
+
+config = ConfigParser()
+config.read('settings.ini')
+
+LOCAL_DIR = config.get('tftp', 'local_dir')
+TFTP_IP = config.get('tftp', 'tftp_ip')
+TFTP_PATCH = config.get('tftp', 'tftp_patch')
 
 MODELS = {'S29': 'SNR', 'S29U': 'SNR', 'S29P': 'SNR', 'S52U': 'SNR_S52',
           'TP34U': 'TP_Link',
@@ -22,7 +27,7 @@ TPLINK_RM_PATTERNS = ['erps ring 1', 'description "ring 1"', 'control-vlan',
 
 def download_from_tftp(swi_ip):
     try:
-        command = f"tftp {TFTP_IP} -c get {TFTP_PATCH + swi_ip} {SWI_CONFIG_DIR + swi_ip}"
+        command = f"tftp {TFTP_IP} -c get {TFTP_PATCH + swi_ip} {LOCAL_DIR + swi_ip}"
         subprocess.run(command, shell=True, check=True)
         print(f"Config '{swi_ip}' downloaded successfully in local dir.")
     except subprocess.CalledProcessError as e:
@@ -31,7 +36,7 @@ def download_from_tftp(swi_ip):
 
 def upload_to_tftp(swi_ip):
     try:
-        command = f"tftp {TFTP_IP} -c put {SWI_CONFIG_DIR + swi_ip} {TFTP_PATCH + swi_ip}"
+        command = f"tftp {TFTP_IP} -c put {LOCAL_DIR + swi_ip} {TFTP_PATCH + swi_ip}"
         subprocess.run(command, shell=True, check=True)
         print(f"Config '{swi_ip}' uploaded successfully in TFTP dir.")
     except subprocess.CalledProcessError as e:
@@ -39,7 +44,7 @@ def upload_to_tftp(swi_ip):
 
 
 def config_change(patterns, swi_ip):
-    with open(SWI_CONFIG_DIR + swi_ip, 'r') as f:
+    with open(LOCAL_DIR + swi_ip, 'r') as f:
         cfg = f.readlines()
 
     print('Config change...')
@@ -48,7 +53,7 @@ def config_change(patterns, swi_ip):
         if not any(v.lstrip().startswith(pattern) for pattern in patterns):
             new_cfg.append(v)
 
-    with open(SWI_CONFIG_DIR + swi_ip, 'w') as f:
+    with open(LOCAL_DIR + swi_ip, 'w') as f:
         f.write(''.join(new_cfg))
 
 
