@@ -150,7 +150,7 @@ class CFG():
                 self.telnet.expect(prompt, timeout=None)
             self.telnet.close()
         else:
-            print(f'{self.model} {self.swi_ip} (yebanyy tp-link) configuration...')
+            print(f'\033[34m{self.model} {self.swi_ip} (yebanyy tp-link) configuration...')
             self.telnet.sendline('copy startup-config tftp ip-address '
                                  f'{TFTP_IP} filename {TFTP_PATCH + self.swi_ip}\r\n')
             self.telnet.expect(prompt)
@@ -167,7 +167,7 @@ class CFG():
             time.sleep(5)  # берем паузу чтобы коммутатор точно не был доступен
             while not is_alive(self.swi_ip):
                 time.sleep(1)
-            print('Switch is alive!')
+            print('Switch is alive!\033[0m')
 
     def TP_Link_owner(self):
         prompt = ['>', '#', ':']

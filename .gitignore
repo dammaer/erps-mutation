@@ -1,4 +1,5 @@
 .env
+*.zip
 venv
 venv_ubuntu16.04
 .vscode/
