@@ -46,7 +46,7 @@ def mutation(ring_id, rm=False):
         print(f'Ring is OK! {len(ring)} коммутаторов.')
         if not rm:
             print_l3_config(ring_params)
-            print('Если настроки верны, скопируйте конфиг на l3 и нажмите Enter для продолжения настройки кольца!')
+            print('\033[33mЕсли настроки верны, скопируйте конфиг на l3 и нажмите Enter для продолжения настройки кольца!\033[0m')
             while input() != '':
                 time.sleep(1)
             for swi in ring:
@@ -59,7 +59,7 @@ def mutation(ring_id, rm=False):
                 time.sleep(3)
             print(f'Ring {ring_id} - ERPS ON!')
         else:
-            print('Убедитесь, что кольцо работает со стороны "жёлтого" коммутатора! Если всё правильно нажмите Enter.')
+            print('\033[33mУбедитесь, что кольцо работает со стороны "жёлтого" коммутатора! Если всё правильно нажмите Enter.\033[0m')
             while input() != '':
                 time.sleep(1)
             for swi in ring:
