@@ -39,36 +39,58 @@ def print_l3_config(ring_params):
             print(f'\n{cmd.ex_l3(ring_params, ring_id)}\n')
 
 
+def wait_for_confirmation():
+    while input() != '':
+        time.sleep(1)
+
+
+def print_switch_status(ring, swi):
+    print(f"{len(ring) - ring.index(swi)} - {swi['model']} {swi['l2_sw_ip']} {swi['ports']} is OK")
+
+
+def configure_switches(ring, raps_vlan, remove):
+    for swi in ring:
+        if remove:
+            CFG(raps_vlan, swi, True).remove()
+        else:
+            if swi.get('owner'):
+                print(f"{swi['l2_sw_ip']} - owner configuration...")
+                CFG(raps_vlan, swi, False).owner()
+            else:
+                CFG(raps_vlan, swi, False).common()
+        print_switch_status(ring, swi)
+        time.sleep(3)
+
+
+def handle_adding_erps(ring, raps_vlan, ring_params, ring_id):
+    print_l3_config(ring_params)
+    print('\033[33mЕсли настройки верны, скопируйте конфиг на l3 и нажмите Enter для продолжения настройки кольца!\033[0m')
+    wait_for_confirmation()
+    configure_switches(ring, raps_vlan, False)
+    print(f'Ring {ring_id} - ERPS ON!')
+
+
+def handle_removal_erps(ring, raps_vlan, ring_id):
+    print('\033[33mУбедитесь, что кольцо работает со стороны "жёлтого" коммутатора! Если всё правильно нажмите Enter.\033[0m')
+    wait_for_confirmation()
+    configure_switches(ring, raps_vlan, True)
+    print(f'Ring {ring_id} - ERPS REMOVE!')
+
+
 def mutation(ring_id, rm=False):
     ring_params, ring = Parse(*ini(), ring_id).get_data()
-    raps_vlan = ring_params[1] if ring_params[1] else input('Введите raps_vlan> ')
-    if all(len(p['ports']) == 2 for p in ring):
-        print(f'Ring is OK! {len(ring)} коммутаторов.')
-        if not rm:
-            print_l3_config(ring_params)
-            print('\033[33mЕсли настроки верны, скопируйте конфиг на l3 и нажмите Enter для продолжения настройки кольца!\033[0m')
-            while input() != '':
-                time.sleep(1)
-            for swi in ring:
-                if swi.get('owner'):
-                    print(f"{swi['l2_sw_ip']} - owner configuration...")
-                    CFG(raps_vlan, swi, rm).owner()
-                else:
-                    CFG(raps_vlan, swi, rm).common()
-                print(f"{len(ring) - ring.index(swi)} - {swi['model']} {swi['l2_sw_ip']} {swi['ports']} is OK")
-                time.sleep(3)
-            print(f'Ring {ring_id} - ERPS ON!')
-        else:
-            print('\033[33mУбедитесь, что кольцо работает со стороны "жёлтого" коммутатора! Если всё правильно нажмите Enter.\033[0m')
-            while input() != '':
-                time.sleep(1)
-            for swi in ring:
-                CFG(raps_vlan, swi, rm).remove()
-                print(f"{len(ring) - ring.index(swi)} - {swi['model']} {swi['l2_sw_ip']} {swi['ports']} is OK")
-                time.sleep(3)
-            print(f'Ring {ring_id} - ERPS REMOVE!')
-    else:
+
+    if not all(len(p['ports']) == 2 for p in ring):
         print('Ring NOT OK!')
+        return
+    print(f'Ring is OK! {len(ring)} коммутаторов.')
+
+    raps_vlan = ring_params[1] if ring_params[1] else input('Введите raps_vlan> ')
+
+    if not rm:
+        handle_adding_erps(ring, raps_vlan, ring_params, ring_id)
+    else:
+        handle_removal_erps(ring, raps_vlan, ring_id)
 
 
 if __name__ == "__main__":
