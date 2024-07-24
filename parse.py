@@ -112,6 +112,7 @@ class Parse():
         top_swi, end_ring = False, False
         switches = []
         while not end_ring:
+            count_before = len(switches)
             for line in self.lines:
                 # от первого свича вверх
                 if not top_swi and ((int(line["x1"]) == swi_x + 100 and int(line["y1"]) == swi_y)):
@@ -132,6 +133,9 @@ class Parse():
                         if not swi_data.get('rudiment'):
                             swi_x, swi_y = line_x1, line_y1
                             switches.append(swi_data)
+            if len(switches) == count_before:
+                # Проверка защитит от вечного цикла если схема была некорректно раскрашена
+                return []
         return switches
 
     def get_data(self):

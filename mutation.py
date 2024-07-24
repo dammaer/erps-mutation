@@ -80,8 +80,8 @@ def handle_removal_erps(ring, raps_vlan, ring_id):
 def mutation(ring_id, rm=False):
     ring_params, ring = Parse(*ini(), ring_id).get_data()
 
-    if not all(len(p['ports']) == 2 for p in ring):
-        print('Ring NOT OK!')
+    if not all(len(p['ports']) == 2 for p in ring) or len(ring) == 1:
+        print("\033[31mRing NOT OK! Правильно ли обозначены rudiment'ы и uplink'и на схеме?\033[0m")
         return
     print(f'Ring is OK! {len(ring)} коммутаторов.')
 
