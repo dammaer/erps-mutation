@@ -49,6 +49,7 @@ def print_switch_status(ring, swi):
 
 
 def configure_switches(ring, raps_vlan, remove):
+    print('Please wait...')
     for swi in ring:
         if remove:
             CFG(raps_vlan, swi, True).remove()
