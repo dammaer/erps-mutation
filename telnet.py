@@ -90,7 +90,7 @@ class CFG():
         self.telnet.expect(prompt)
         for c in cmd.snr(self.raps_vlan, self.ports, self.rm):
             self.telnet.sendline(c)
-            self.telnet.expect(prompt, timeout=None)
+            self.telnet.expect_exact(prompt, timeout=None)
         self.telnet.close()
 
     def SNR_owner(self):
@@ -104,7 +104,7 @@ class CFG():
         self.telnet.expect(prompt)
         for c in cmd.snr_owner(self.raps_vlan, self.ports):
             self.telnet.sendline(c)
-            self.telnet.expect(prompt, timeout=None)
+            self.telnet.expect_exact(prompt, timeout=None)
         self.telnet.close()
 
     def SNR_S52(self):
@@ -120,7 +120,7 @@ class CFG():
         self.telnet.expect(prompt)
         for c in cmd.snr_s52(self.raps_vlan, self.ports, self.rm):
             self.telnet.sendline(c)
-            self.telnet.expect(prompt, timeout=None)
+            self.telnet.expect_exact(prompt, timeout=None)
         self.telnet.close()
 
     def D_Link(self):
@@ -194,7 +194,7 @@ class CFG():
         self.telnet.expect(prompt)
         for c in cmd.qtech(self.raps_vlan, self.ports):
             self.telnet.sendline(c)
-            self.telnet.expect(prompt, timeout=None)
+            self.telnet.expect_exact(prompt, timeout=None)
         self.telnet.close()
 
     def common(self):
@@ -209,8 +209,8 @@ class CFG():
 
 
 if __name__ == "__main__":
-    # CFG('30',
-    #     {'l2_sw_ip': '10.59.100.22', 'uplink': False, 'model': 'TP34U',
-    #      'ports': ['26', '25'], 'auth': ['root', 'root'],
-    #      'owner': False}, rm=True).remove()
+    CFG('26',
+        {'l2_sw_ip': '10.55.6.6', 'uplink': False, 'model': 'S52U',
+         'ports': ['26', '25'], 'auth': ['admin', 'zjsqli'],
+         'owner': False}, rm=False).common()
     pass
