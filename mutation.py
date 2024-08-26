@@ -52,13 +52,13 @@ def configure_switches(ring, raps_vlan, remove):
     print('Please wait...')
     for swi in ring:
         if remove:
-            CFG(raps_vlan, swi, True).remove()
+            CFG(raps_vlan, swi, rm=True).start()
         else:
             if swi.get('owner'):
                 print(f"{swi['l2_sw_ip']} - owner configuration...")
-                CFG(raps_vlan, swi, False).owner()
+                CFG(raps_vlan, swi, rm=False, owner=True).start()
             else:
-                CFG(raps_vlan, swi, False).common()
+                CFG(raps_vlan, swi, rm=False).start()
         print_switch_status(ring, swi)
         time.sleep(3)
 
@@ -72,7 +72,7 @@ def handle_adding_erps(ring, raps_vlan, ring_params, ring_id):
 
 
 def handle_removal_erps(ring, raps_vlan, ring_id):
-    print('\033[33mУбедитесь, что кольцо работает со стороны "жёлтого" коммутатора! Если всё правильно нажмите Enter.\033[0m')
+    print('\033[33mУбедитесь, что кольцо работает НЕ со стороны "жёлтого" коммутатора! Если всё правильно нажмите Enter.\033[0m')
     wait_for_confirmation()
     configure_switches(ring, raps_vlan, True)
     print(f'Ring {ring_id} - ERPS REMOVE!')

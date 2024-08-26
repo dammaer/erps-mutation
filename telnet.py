@@ -18,9 +18,6 @@ MODELS = {'S29': 'SNR', 'S29U': 'SNR', 'S29P': 'SNR', 'S52U': 'SNR_S52',
           'D3528': 'D_Link', 'D3000': 'D_Link', 'D3120': 'D_Link', 'G3000': 'D_Link',
           'Q28': 'QTECH'}
 
-OWNER_MODELS = {'S29': 'SNR_owner', 'S29U': 'SNR_owner', 'S29P': 'SNR_owner',
-                'TP34U': 'TP_Link_owner'}
-
 TPLINK_RM_PATTERNS = ['erps ring 1', 'description "ring 1"', 'control-vlan',
                       'protected-instance 1', 'raps-mel 3', 'version 2']
 
@@ -68,7 +65,7 @@ def is_alive(host):
 class CFG():
     EXCEPT = [pexpect.TIMEOUT, pexpect.EOF]
 
-    def __init__(self, raps_vlan, swi, rm):
+    def __init__(self, raps_vlan, swi, rm, owner=False):
         self.raps_vlan = raps_vlan
         self.swi_ip = swi['l2_sw_ip']
         self.model = swi['model']
@@ -76,6 +73,7 @@ class CFG():
         self.passw = swi['auth'][1]
         self.ports = swi['ports']
         self.rm = rm
+        self.owner = owner
         self.telnet = pexpect.spawn(f"telnet {self.swi_ip}", timeout=10,
                                     encoding="utf-8")
 
@@ -88,21 +86,7 @@ class CFG():
         self.telnet.expect(prompt)
         self.telnet.sendline("terminal length 0")
         self.telnet.expect(prompt)
-        for c in cmd.snr(self.raps_vlan, self.ports, self.rm):
-            self.telnet.sendline(c)
-            self.telnet.expect_exact(prompt, timeout=None)
-        self.telnet.close()
-
-    def SNR_owner(self):
-        prompt = ["#", "[Y/N]"]
-        self.telnet.expect("login")
-        self.telnet.sendline(self.user)
-        self.telnet.expect("[Pp]assword")
-        self.telnet.sendline(self.passw)
-        self.telnet.expect(prompt)
-        self.telnet.sendline("terminal length 0")
-        self.telnet.expect(prompt)
-        for c in cmd.snr_owner(self.raps_vlan, self.ports):
+        for c in cmd.snr(self.raps_vlan, self.ports, self.rm, self.owner):
             self.telnet.sendline(c)
             self.telnet.expect_exact(prompt, timeout=None)
         self.telnet.close()
@@ -118,7 +102,7 @@ class CFG():
         self.telnet.expect(prompt)
         self.telnet.sendline("terminal length 0")
         self.telnet.expect(prompt)
-        for c in cmd.snr_s52(self.raps_vlan, self.ports, self.rm):
+        for c in cmd.snr_s52(self.raps_vlan, self.ports, self.rm, self.owner):
             self.telnet.sendline(c)
             self.telnet.expect_exact(prompt, timeout=None)
         self.telnet.close()
@@ -145,7 +129,7 @@ class CFG():
         self.telnet.sendline('enable\r\n')
         self.telnet.expect(prompt)
         if not self.rm:
-            for c in cmd.tp_link(self.raps_vlan, self.ports):
+            for c in cmd.tp_link(self.raps_vlan, self.ports, self.owner):
                 self.telnet.sendline(f'{c}\r\n')
                 self.telnet.expect(prompt, timeout=None)
             self.telnet.close()
@@ -169,20 +153,6 @@ class CFG():
                 time.sleep(1)
             print('Switch is alive!\033[0m')
 
-    def TP_Link_owner(self):
-        prompt = ['>', '#', ':']
-        self.telnet.expect(prompt)
-        self.telnet.sendline(f'{self.user}\r\n')
-        self.telnet.expect(prompt)
-        self.telnet.sendline(f'{self.passw}\r\n')
-        self.telnet.expect(prompt)
-        self.telnet.sendline('enable\r\n')
-        self.telnet.expect(prompt)
-        for c in cmd.tp_link_owner(self.raps_vlan, self.ports):
-            self.telnet.sendline(f'{c}\r\n')
-            self.telnet.expect(prompt, timeout=None)
-        self.telnet.close()
-
     def QTECH(self):
         prompt = ["#", "[Y/N]"]
         self.telnet.expect("login")
@@ -197,20 +167,14 @@ class CFG():
             self.telnet.expect_exact(prompt, timeout=None)
         self.telnet.close()
 
-    def common(self):
+    def start(self):
         method = getattr(self, MODELS[self.model])
         method()
 
-    def owner(self):
-        method = getattr(self, OWNER_MODELS[self.model])
-        method()
-
-    remove = common
-
 
 if __name__ == "__main__":
-    CFG('26',
-        {'l2_sw_ip': '10.55.6.6', 'uplink': False, 'model': 'S52U',
-         'ports': ['26', '25'], 'auth': ['admin', 'zjsqli'],
-         'owner': False}, rm=False).common()
+    CFG('23',
+        {'l2_sw_ip': '10.10.41.11', 'uplink': False, 'model': 'TP34U',
+         'ports': ['26', '25'], 'auth': ['root', 'root'],
+         'owner': False}, rm=True).start()
     pass
